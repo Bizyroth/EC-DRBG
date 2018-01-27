@@ -1,0 +1,476 @@
+\documentclass[a4paper,11pt]{report}
+ 
+\usepackage[latin1]{inputenc}
+\usepackage[francais]{babel}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{enumitem}
+\usepackage[]{algorithm2e}
+\pagestyle{plain}
+\usepackage{hyperref}
+\newtheorem{theo}{Th\'eor\`eme}[section]
+\newtheorem{lem}{Lemme}[section]
+\newtheorem{defi}{D\'efinition}[section]
+
+\newlength{\larg}
+\setlength{\larg}{14.5cm}
+\title{
+{\rule{\larg}{1mm}}\vspace{7mm}
+\begin{tabular}{p{1cm} r}
+   & {\Huge {\bf G\'en\'erateur Pseudo Al\'eatoire}} \\
+   & \\
+   & {\huge Porte d\'erob\'e du protocole NIST}
+\end{tabular}\\
+\vspace{2mm}
+{\rule{\larg}{1mm}}
+\vspace{2mm} \\
+\begin{tabular}{p{11cm} r}
+   & {\large  9 juin 2016}
+\end{tabular}\\
+\vspace{5.5cm}
+}
+\author{\begin{tabular}{p{13.7cm}}
+Yankhoba CISSE et Cl\'ement HUYART
+\end{tabular}\\
+\hline }
+\date{}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+\chapter{Introduction}
+
+\section{L'al\'eatoire}
+	\subsection{Qu'est ce que l'al\'eatoire}
+	En math\'ematique, une suite al\'eatoire est une suite de symbole d'un alphabet ne poss\'edant %
+	aucune structure ou r\`egle de pr\'ediction identifiable. L'al\'eatoire existe dans des %
+	ph\'enom\`enes naturels comme la radioactivit\'e, les bruits thermiques ou %
+	\'electromagn\'etiques ou bien la m\'ecanique quantique. \\
+	
+	
+	Cependant il est impossible pour un \^etre humain de donner une suite al\'eatoire de chiffre. %
+	De m\^eme qu'un ordinateur ne peut pas d\'eterminer une vraie suite al\'eatoire de par sa %
+	nature d\'eterministe. Etant donn\'e que l'al\'eatoire est n\'ecessaire \`a beaucoup %
+	d'application informatique aujourd'hui, il nous faut trouver un moyen de simuler des %
+	suites al\'eatoires, ou plutot pseudo-al\'eatoires dans le cas d'un ordinateur. \\
+	
+	L'al\'eatoire est n\'ecessaire en cryptographie. Par exemple, il est utilis\'e dans l'un des %
+	protocoles d'\'echanges de cl\'e le plus utilis\'e: l'\'echange de cl\'e de Diffie Hellman.
+	
+	Pour cela, nous allons \'etudier les g\'en\'erateurs pseudo-al\'eatoires.
+	
+	\subsection{G\'en\'erateur pseudo-al\'eatoire}
+		Un g\'en\'erateur pseudo-al\'eatoire (Pseudorandom number generator en anglais) est un %
+		algorithme qui g\'en\`ere une s\'equence de nombres pr\'esentant certaines propri\'et\'es du hasard.\\
+		
+		A la diff\'erence d'un g\'en\'erateur al\'eatoire, de tels g\'en\'erateurs ne sont pas enti\`erement %
+		al\'eatoire. Les deux principales raisons de l'utilisation de ces g\'en\'erateurs sont:\\
+		\begin{itemize}
+		\item Il est difficile d'obtenir de vrai nombre al\'eatoire.
+		\item Les g\'en\'erateurs pseudo-al\'eatoires sont facilement impl\'ementable sur informatique.\\
+		\end{itemize}			
+		
+		Les plus r\'epandus de nos jours sont ceux qui utilisent une congruence lin\'eaire. %
+		Certains utilisent des propri\'et\'es de la suite de Fibonacci ou bien des registres %
+		\`a d\'ecalage \`a r\'etroaction lin\'eaire.\\
+		
+	\subsection{Tester l'al\'ea}	
+	
+	On peut v\'erifier les propri\'et\'es al\'eatoires d'un g\'en\'erateur \`a l'aide de test. Les tests les plus %
+	utilis\'es sont des tests statistiques.   \\
+	
+	
+	Pour les g\'en\'erateurs pseudo-al\'eatoires, on utilise des tests statistiques dit d'ad\'equation. %
+	On suppose que le g\'en\'erateur suit une loi de distribution $P$. On va ensuite comparer la %
+	distribution r\'eelle du g\'en\'erateur avec $P$. Par exemple, dans le cas d'un g\'en\'erateur al\'eatoire %
+	simulant une pi\`ece de monnaie, on doit v\'erifier que la probabilit\'e d'obtenir pile ou face doit %
+	\^etre \'equiprobable. \\
+	Les tests d'ad\'equation les plus utilis\'es sont les tests du $\chi^2$ et de Kolmogorov-Smirnov. \\
+	
+	
+	
+	
+	Avant de nous int\'eresser au g\'en\'erateur pr\'esent\'e par le NIST, nous allons, dans un premier temps, vous pr\'esenter les g\'en\'erateurs utilisant une congruence lin\'eaire.\\ 
+	
+		
+	\chapter{G\'en\'erateur \`a congruence lin\'eaire}
+	\section{Pr\'esentation}
+	Un g\'en\'erateur congruentiel lin\'eaire est d\'efini par 4 nombres dit "nombres magiques" et %
+	une \'equation.\\
+	On d\'efinit: \\
+	\begin{itemize}
+	\item $m$ le module tel que $m>0$
+	\item $a$ le multiplicateur tel que $0\leq a <m$
+	\item $c$ l'incr\'ement tel que $0\leq c <m$
+	\item $X_{0}$ la valeur initiale tel que $0\leq X_{0} <m$\\
+	\end{itemize}	 	
+	Le g\'en\'erateur est ensuite d\'efinie par l'\'equation:\\
+	$X_{n+1} = a*X_{n} + c \mod{m}$ \\
+		Les propri\'et\'es al\'eatoires du g\'en\'erateur d\'ependent du choix des 4 nombres magiques. Nous % 
+		allons voir 	comment les choisir afin que le g\'en\'erateur ait les propri\'et\'es voulues.
+		
+	\section{Le choix du module}
+	Etant donn\'e que l'on veut une suite pseudo-al\'eatoire, on cherche \`a avoir une p\'eriode %
+	qui soit la plus grande possible. Pour cela on va devoir choisir le module $m$ tr\`es %
+	grand car la p\'eriode ne peut pas avoir plus de $m$ \'el\'ements. \\
+	De plus nous voulons choisir une valeur de $m$ de telle sorte que le calcul de %
+	$X_{n+1}$ se fasse le plus rapidement possible. \\
+	
+	
+	Le probl\`eme est que le co\^ut d'une division est \'elev\'e. Pour minimiser ce co\^ut, une bonne %
+	valeur pour $m$ est la taille d'un mot machine. \\
+	Un mot machine est une unit\'e de base manipul\'ee par un microprocesseur en informatique. %
+	La pluplart des machines actuelles utilisent des mots machine de 32 ou 64 bits.\\
+	Soit $\omega=2^{e}$ la taille d'un mot machine. \\
+	Dans un ordinateur, les additions et les multiplications se font naturellement modulo %
+	$\omega$. En prenant $m=\omega$, les it\'erations de la suite sont donc plus rapide %
+	\`a calculer.
+	Mais en pratique, les bits de poids faible sont beaucoup moins al\'eatoire que les bits de %
+	poids fort. Une solution \`a ce probl\`eme est de faire un d\'ecalage afin de conserver que %
+	les bits de poids fort.
+	
+	
+	\section{Le choix du multiplicateur}
+	Nous allons montrer comment choisir le multiplicateur $a$ afin que la longueur de la %
+	suite soit maximale. Une longue p\'eriode est essentielle afin de conserver les propri\'et\'es %
+	de la suite. Apr\`es avoir calcul\'e la p\'eriode maximale, il faut v\'erifier que la taille de la %
+	 p\'eriode soit plus longue que les nombres utilis\'es par l'application. %
+	Le choix de la p\'eriode d\'epend donc aussi de l'application utilis\'ee.\\
+	De telle suite existe, par exemple:\\
+	En prenant $a=c=1$, $X_{n+1}= X_{n}+1 \mod{m}$ est de p\'eriode maximale. Cependant cette %
+	suite n'est pas al\'eatoire$\ldots$
+	 
+	 
+	Le cas o\'u $a=0$ est rejet\'e imm\'ediatement, car la suite ($X_{n}$) serait constante de %
+	valeur $c$.\\
+	Le cas o\'u $a=1$ est aussi rejet\'e, car la suite ($X_{n}$) serait une suite arithm\'etique %
+	de raison $c$ modulo $m$. 
+	
+	Supposons que $2\leq a$. Posons $b=a-1$. On a $1\leq b$.\\
+	
+	\begin{theo}\label{theo1}
+	Un g\'en\'erateur congruentiel lin\'eaire d\'efinie par $m$, $a$, $c$ et $X_{0}$ a une p\'eriode %
+	de longueur $m$ si et seulement si:\\
+	\begin{enumerate}
+	\item $c$ est premier \`a $m$
+	\item pour chaque nombre premier $p$ divisant $m$, $b$ est un multiple de $p$
+	\item Si $m$ est un multiple de $4$, $b$ est un multiple de $4$\\
+	\end{enumerate}
+	\end{theo}
+	
+	Avant de commencer la d\'emonstration, nous allons \'enoncer $3$ lemmes qui nous servirons.\\
+	
+	\begin{lem}\label{lem1}
+	Soit $G$=($X_0, a, c, m$) un g\'en\'erateur \`a congruence lin\'eaire et $m=p_1^{e_1}\ldots p_k^{e_k}$ sa % 
+	d\'ecomposition en facteur premier.
+	 La longueur $\lambda$ de la p\'eriode du g\'en\'erateur $G$ est le ppcm des $\lambda_j$ pour %
+	 $1\leq j\leq k$ avec $\lambda_j$ la longueur de la p\'eriode du g\'en\'erateur d\'efinie par %
+	 ($X_0 \pmod{p_j^{e_j}}, a\pmod{p_j^{e_j}}, c\pmod{p_j^{e_j}}, p_j^{e_j}$).	
+	\end{lem}	
+	\begin{lem}\label{lem2}
+	Soit $a$ un entier tel que $1 < a < p^e$ avec p premier.\\
+	Si $\lambda$ est le plus petit entier positif tel que $\frac{a^{\lambda}-1}{a-1}\equiv 0\pmod{p^e}$ alors :\\
+	
+	
+	\[\lambda=p^e~si~et~seulement~si~ 
+\left \{
+\begin{array}{c @{\equiv} c}
+    a & 1\pmod{p}~si~p>2 \\
+    a & 1\pmod{4}~si~p=2 \\
+\end{array}
+\right.
+\]	
+	\end{lem}
+	
+	\begin{proof}[D\'emonstration th\'eor\`eme \ref{theo1}]
+	Soient ($X_0, a, c, m$) un g\'en\'erateur \`a congruence lin\'eaire, $\lambda$ sa p\'eriode.\\	
+	
+	Gr\^ace au lemme \ref{lem1}, il suffit de montrer le th\'eor\`eme \ref{theo1} dans le cas o\'u $m$ %
+	est une puissance d'un nombre premier.\\
+	En effet, $m=p_1^{e_1}\ldots p_k^{e_k}=\lambda=ppcm(\lambda_1, \ldots, \lambda_k)\leq $%
+	$\lambda_1\ldots\lambda_k\leq p_1^{e_1}\ldots p_k^{e_k}$ est vrai si et seulement si %
+	$\lambda_j=p_j^{e_j}~1\leq j\leq k$\\
+	
+	Si $a=1$, le th\'eor\`eme est v\'erifi\'e. En effet, $X_{n+1}=X_n + c \pmod{m}$ est de p\'eriode $m$ %
+	si et seulement si $c$ est premier avec $m$. On peut donc supposer par la suite que $a>1$.\\
+	
+	De plus, la p\'eriode est de longueur $m$ si et seulement si tout $x$ tels que $0\leq x< m$ %
+	apparaissent une et une seule fois dans la p\'eriode si et seulement si la longueur de la p\'eriode du g\'en\'erateur avec $X_0=0$ vaut $m$. On peut donc supposer que $X_0=0$.\\
+	
+	D\'emontrons par r\'ecurrence que $X_{n+k}=a^kX_n + \frac{(a^k-1)c}{b} \pmod{m}$.\\	
+	Pour $k=0$, la formule est vraie ($X_n=X_n$).\\
+	Supposons que la formule est vraie pour un certains $k$. Montrons la pour $k+1$.\\
+	$X_{n+k+1}=aX_{n+k} + c$\\
+	$=a\times a^kX_n + \frac{a(a^k-1)c}{b} + c$\\
+	$=a^{k+1}X_n + \frac{a^{k+1}c -ac +ac -c}{b}$ (car $b=a-1$)\\
+	$=a^{k+1}X_n + \frac{(a^{k+1}-1)c}{b}$\\
+	
+	On a donc montr\'e que $X_{n+k}\equiv a^kX_n + \frac{(a^k-1)c}{b} \pmod{m}$\\
+	
+	
+	On a donc l'\'equation $X_{0+n}=a^nX_0 + \frac{(a^n-1)c}{a-1} \pmod{m}$\\
+	Donc $X_n=\frac{(a^n-1)c}{a-1} \pmod{m}$ (1)\\
+	
+	Si $c$ n'est pas premier \`a $m$, $X_n$ ne prend jamais la valeur $1$, donc la condition (i) %
+	du th\'eor\`eme est n\'ecessaire.\\
+	
+	La p\'eriode est de longueur $m$ si et seulement si la plus petite valeur de $n$ telle que %
+	$X_n=X_0=0$ est $n=m$. \\
+	Les points (ii) et (iii) sont d\'emontr\'es directement \`a l'aide du lemme \ref{lem2}, ce qui conclus la d\'emonstration du th\'eor\`eme.
+	
+	
+	\end{proof}
+	
+	On a donc montr\'e que pour que le g\'en\'erateur ait une p\'eriode maximale, il faut que les nombres magiques aient les propri\'et\'es donn\'ees par le th\'eor\`eme \ref{theo1}.
+	
+	\subsection{Efficacit\'e et test}
+	 
+	 Le choix des nombres magiques influe grandement sur l'efficacit\'e du g\'en\'erateur. En effet, nous %
+	 avons vu que dans le cas trivial o\'u $a=0$, le g\'en\'erateur \'etait de p\'eriode maximale mais \'etait constant. Le choix de $a$ et $c$ est longuement discut\'e dans \underline{The Art Of Computer Programming} de Donald E. Knuth. \\
+	 Nous avons aussi montr\'e que il existait des g\'en\'erateur \`a congruence lin\'eaire qui pouvaient avoir une p\'eriode maximale. Cependant prendre une p\'eriode maximale n'est pas toujours n\'ecessaire selon l'utilisation du g\'en\'erateur et le choix du module.
+	 
+	 
+	 Pour v\'erifier qu'un g\'en\'erateur est vraiment al\'eatoire, on lui fait subir un test spectral. %
+	 Le test spectral est un test statistique qui ne peut s'appliquer qu'aux g\'en\'erateurs \`a congruence lin\'eaire. Le test spectral teste l'uniformit\'e des nombres produits par un g\'en\'erateur sur %
+	 une p\'eriode enti\`ere. Knuth a \'enonc\'e que dans la pratique un "mauvais" g\'en\'erateur (ie un g\'en\'erateur qui ne produisait pas du vrai al\'ea) ne passait jamais le test spectral. 
+
+\chapter{Le G\'en\'erateur pr\'esent\'e par le NIST}
+
+	\section{Introduction}
+	\subsection{Courbe elliptique}
+		Soit $K$ un corps. \\
+		Une courbe elliptique est un cas particulier de courbe alg\'ebrique qui peut \^etre repr\'esent\'ee %
+		dans un plan par une \'equation cubique de la forme:\\
+		$y^2 + a_1xy + a_3y = x^3 + a_2x^2 + a_4x + a_5$ avec $a_1,a_2,a_3,a_4,a_5 \in K$.\\		
+		Dans le cadre de ce projet, nous nous int\'eresserons uniquement aux courbes elliptiques %
+		donn\'ees par des \'equations dites de Weierstrass, c'est \`a dire des \'equations de la forme:\\
+		$y^2 = x^3 + ax + b$ avec $a,b \in K$.\\
+		
+		
+		\begin{theo}
+		Soit $E$ une courbe elliptique sur un corps $K$.\\
+		Alors $E(K)$ est un groupe ab\'elien pour la loi d'addition g\'eom\'etrique de deux points sur une %
+		courbe elliptique.
+		\end{theo}
+	
+	\begin{defi}
+	Soit $E$ une courbe elliptique sur un corps $K$. Soit $G\in E(K)$.\\
+	Connaissant $P\in E(K)$, trouver $n\in \mathbb{N}$, s'il existe, tel que $P=nG$, revient %
+	\`a r\'esoudre le probl\`eme du logarithme discret.
+	\end{defi}
+	
+	
+	En effet trouver le point $G$ \`a partir du point $P=nG$ reviendrait \`a casser le cryptosyst\`eme  %
+	de El-Gamal qui repose lui m\^eme sur le probl\`eme du logarithme discret.
+	
+	
+	La r\'esolution de ce probl\`eme peut s'av\'erer plus facile pour certaines courbes elliptiques E mal choisies telles que %
+	les courbes supersinguli\`eres. 
+	
+	
+	\section{Le NIST et son g\'en\'erateur}
+	\subsection{Le NIST}
+	Le NIST (pour National Institute of Standards and Technology) est une agence am\'ericaine ayant %
+	pour but de promouvoir l'\'economie en d\'eveloppant des technologies et la m\'etrologie (science des %
+	mesures et des standards de concert avec l'industrie). Ce sont notamment eux qui sont %
+	 \`a l'origine des normes pour les mesures du poids, de la longueur ou bien du volume au Etats %
+	 Unis. \\
+	 Ils sont aussi en charge des standards en cryptographie. Ils d\'eterminent quels algorithmes %
+	 peuvent \^etre utilis\'es et quelles propri\'et\'es ils doivent v\'erifier. Par exemple, dans le cadre %
+	 du g\'en\'erateur que nous \'etudions, il \'etait conseill\'e de prendre $p$ un nombre premier tel %
+	 que $p$ est sup\'erieur \`a $10^{77}$. \\
+	 L'algorithme que nous \'etudions est appel\'e dual\_ec\_drbg dans la norme du NIST. Il a \'et\'e %
+	  ajout\'e au standard du NIST au d\'ebut des ann\'ees 2000.\\
+	  
+	  
+	  Dan Shumow et Niels Ferguson ont publi\'e en 2007 un article soupconnant l'existence d'une backdoor dans %
+	  l'algorithme permettant \`a la NSA de deviner les propri\'et\'es al\'eatoires de l'algorithme. Cependant la d\'emonstration de l'existence de la backdoor a \'et\'e ignorer par %
+	  l'ensemble des acteurs en cryptographie.\\
+	   En 2013, le New York Times et le Guardian publient un article impliquant la NSA dans %
+	   l'existence d'une faille de l'algorithme. Ils reprennent l'article de Shumow et Ferguson. De plus il ajoutent que les standards de l'algorithme ont \'et\'e %
+	   dict\'e par la NSA au NIST. La connaissance d'une faille par la NSA n'a cependant pas \'et\'e %
+	   prouv\'ee...
+		Nous allons donc pr\'esenter l'algorithme dans la suite de ce rapport et expliquer pourquoi %
+		il ne permet pas de g\'en\'erer du "vrai" al\'ea.
+		\subsection{L'algorithme}
+		
+		Le standard du NIST donne une liste de sextupl\'es ($E,p,n,f,P,Q$) pour d\'efinir le g\'en\'erateur. %
+		$E$ est la courbe elliptique sur $\mathbb F_p$ avec $p$ premier d\'efinie par  %
+		$E:~y^2=f(x)$. La taille de $p$ diff\`ere selon les versions de l'algorithme. Il y a %
+		3 tailles possibles pr\'esent\'ees par le NIST: 256, 384 et 512 bits.\\
+		On a $n=\#E(\mathbb F_p)$. Rien n'est indiqu\'e pour $n$, cependant %
+		$n$ est premier dans tous les exemples donn\'es par le NIST. \\
+		Et enfin $P$ et $Q$ sont deux points de la courbe elliptique, ie $P,Q \in E(\mathbb F_p)$.\\
+		
+		
+		Le NIST ne donne aucune explication sur les choix de ($E,p,n,f,P,Q$). On remarque cependant que $p > 10^{77}$.
+		Soit $A \in E(\mathbb F_p), A=(x_a, y_a) x_a,y_a \in \mathbb F_p$.\\
+		On d\'efinit la fonction, $x_1$:\\
+		$E(\mathbb F_p)\setminus0 \longmapsto \mathbb{Z}$\\
+		$A \rightarrow x_a'$ un repr\'esentant de $x_a$ modulo $p$.		
+		
+		Pour g\'en\'erer une suite de nombre al\'eatoire suivant le standard du NIST, on commence %
+		par choisir une graine $s \in \mathbb{N}$ qui devra rester secr\`ete afin de prot\'eger %
+		l'al\'ea. 		\\
+		
+		
+							
+		\begin{algorithm}[H]
+		\KwData{$P, Q, s$}
+		\KwResult{$b$ suite de bit al\'eatoire}
+		r=$x_1$(s*P)\;
+		s'=$x_1$(r*P)\;
+		t=$x_1$(r*Q)\;
+		b= extract\_bit t\;
+		\caption{Algorithme donn\'e par le NIST}
+		\end{algorithm}
+		
+		
+		
+		La fonction extract\_bit retire les 16 bits de poids fort dans $t$ et garde les autres. %
+		Pour continuer \`a g\'en\'erer des nombres al\'eatoires, on refait l'algorithme en se servant %
+		de $s'$ comme nouveau secret.\\
+		
+	
+	\chapter{La backdoor}
+	Une backdoor est un secret permettant \`a un certain groupe de personne d'avoir acc\`es \`a %
+	des informations qui ne sont pas cens\'es \^etre accessible.\\
+	Ce g\'en\'erateur a longtemps \'et\'e utilis\'e pour g\'en\'erer de l'al\'eatoire mais en 2007 Dan Shumow et %
+	Niels Ferguson ont r\'eussi \`a d\'emontrer que l'on pouvait pr\'edire l'al\'ea g\'en\'erer par cet %
+	algorithme. Ils ont d\'emontr\'e qu'avec seulement 32 bits r\'ecup\'er\'es en sortie de l'algorithme, %
+	il \'etait possible d'identifier la graine qui nous sert \`a g\'en\'erer les nombres.
+	
+	\section{Pr\'esentation de la backdoor}
+	
+	Soit ($E,p,n,f,P,Q$) un g\'en\'erateur d\'efini comme pr\'ec\'edemment. \\
+	Etant donn\'e que $P$ et $Q$ sont des \'el\'ements d'un groupe cyclique, %
+	 $\exists e \in \mathbb{Z}$ %
+	tel que $P = e \times Q$. En d\'eterminant un tel $e$ il est facile de trouver la graine $s$ %
+	nous permettant de g\'en\'erer les nombres. Un tel $e$ repr\'esente donc la backdoor dans cet %
+	algorithme.\\
+	
+	Supposons que l'on ait un tel $e$. Soit $b$ le r\'esultat de l'algorithme. Etant donn\'e que la %
+	fonction extract\_bit ne garde que les 16 bits de poids faibles, on peut stocker les %
+	$2^{16}$ pr\'e-images t possibles avec b=extract\_bits(t). Pour chaque t, il y a au plus deux %
+	abscisses possibles. Les calculer revient \`a r\'esoudre une \'equation quadratique. \\
+	
+	Nous venons donc de calculer au plus $2^{17} A$ tel que t=$x_1$($A$). \\
+	L'un de ces $A$ vaut $A = r \times Q$. \\
+	Il nous reste plus qu'a calculer $e*A$ pour tous les $A$ pr\'ec\'edemment calculer. L'un d'entre %
+	eux vaut: \\
+	$e\times (r\times Q)=r\times (e\times Q)=r\times P$.\\
+	Finalement, on peut calculer $s'=x_1(r\times P)$. On trouve le bon $A$ en comparant ce que l'on %
+	obtient avec la sortie de l'algorithme. Shumow et Ferguson ont remarqu\'e que en pratique, seulement 32 bits nous permettent de retrouver la graine.
+	
+	
+	En supposant que l'on ait un $e$ tel que $P=e\times Q$, on a l'algorithme suivant pour d\'eterminer le secret $s$ nous permettant de casser le g\'en\'erateur:\\
+	\begin{algorithm}[H]
+		\KwData{$e$ entier tel que $P=e\times Q$, $o$ bloc de bit g\'en\'er\'e par le g\'en\'erateur que l'on veut attaquer}
+		\KwResult{ $S$ ensemble de valeur possible de la graine}
+		S=\{\}\;
+		\For{$0\leq u \leq 2^{16}-1$}{
+		x=$u|o$\;
+		$z \equiv x^3 + ax + b \pmod{p}$\;
+		\If{$y \equiv z^{\frac{1}{2}} \pmod{p}$ existe}{
+		$A=(x,y)$ est sur la courbe elliptique.\\
+			$S=S\bigcup x_1(e\times A)$\\
+}
+}
+		\caption{Algorithme permettant de casser le g\'en\'erateur donn\'e par le NIST}
+		\end{algorithm}
+
+
+		Pour programmer ces algorithmes, nous utilisons PARI-GP. Afin de savoir si le point ($x,y$) de l'algorithme appartient \`a la courbe elliptique, nous utilisons la fonction ellordinate de GP. Cette fonction est rapide car tester si un point appartient \`a une courbe elliptique revient %
+		\`a calculer un symbole de Legendre. La complexit\'e de cet algorithme est donc en $O$($2^{16}\times k$) avec $k$ le co\^ut de un ellordinate.\\
+
+
+		
+		Le NIST ne pr\'ecisait pas comment les points $P$ et $Q$ \'etaient choisis. Mais, \'etant donn\'e %
+		que le NIST est oblig\'e de consulter la NSA lors de la conception de standard cryptographique, la NSA \'etait au courant de la s\'election des points. Le NIST choisissait un point %
+		$P$, choisissait un $e$ entier et choisissait $Q=e\times P$. La NSA possedait exclusivement la backdoor. 
+	
+	\section{En pratique}
+	En effet, trouver un $e$ tel que $P=e\times Q$ est extremement difficile \'etant donn\'e que cela %
+	revient \`a r\'esoudre le probl\`eme du logarithme discret. \\
+	Mais en partant de $e$, il n'est pas difficile de cr\'eer une paire ($P$, $Q$) tel que $P=e\times Q$.
+	Pour prouver l'existence de la backdoor, Shumow et Ferguson ont inject\'e leur propre valeur de $Q$ dans l'algorithme: \\
+	\begin{itemize}
+	\item Choisir al\'eatoirement $d$.
+	\item Remplacer $Q$ par $Q_2= d\times P$
+	\item On injecte $Q_2$ dans l'algorithme pr\'esent\'e par le NIST
+	\item On trouve un ensemble de graine possible \`a l'aide l'algorithme pr\'esent\'e pr\'ec\'edemment.
+	\item On compare la sortie de l'algorithme du NIST modifi\'e avec la sortie de l'algorithme ou l'on a injecter les diff\'erentes graines trouv\'ees. Lorsque les sorties correspondent c'est que l'on a trouv\'e la bonne graine.
+	\end{itemize}
+	
+	A l'aide de notre $d$, on arrive \`a calculer la graine qui est cens\'e \^etre secr\`ete. On a donc la %
+	preuve de l'existence d'une backdoor.
+
+	\section{Am\'elioration possible}
+	Une premi\`ere am\'elioration serait de tronquer plus de 16 bits dans le g\'en\'erateur. En garder %
+	que 8 rendrait beaucoup plus long le calcul des ant\'ec\'edents de la sortie du g\'en\'erateur. \\
+	
+	Dans notre algorithme, nous calculons $2^{16}$ ant\'ec\'edents, ce qui se fait en temps raisonnable %
+	avec un ordinateur. Si l'on ne gardait que les 8 premiers bits g\'en\'erer, il faudrait calculer %
+	$2^{248}$ ant\'ec\'edents dans le cas o\'u la taille de $p$ est de 256 bits. Le calcul serait alors beaucoup plus long. 
+	
+	
+	Une mani\`ere beaucoup plus drastique d'op\'erer serait de ne garder que le premier ou les deux premiers bits g\'en\'erer. Cela ferait monter \`a $2^{254}$ ou $2^{255}$ le nombre d'ant\'ec\'edent %
+	 \`a calculer. \\
+	 Cette am\'elioration n'est cependant pas suffisante car l'augmentation de la puissance de calcul des ordinateurs permettrait de casser \`a nouveau l'algorithme.\\
+	
+	
+	
+	
+	Une deuxi\`eme am\'elioration serait de g\'en\'erer un nouveau $Q$ pour chaque tour de boucle du g\'en\'erateur. \\
+	On ne pourrait plus avoir une unique relation $P=e\times Q$. Cela empecherait donc de trouver %
+	la graine. \\
+	Ce qui nous permet de trouver la graine au $i^{eme}$ tours est l'\'equation:\\
+	$x_1(e\times A)= x_1(e\times r_i\times Q)= x_1(r_i\times P)=s_{i+1}$\\
+	Cependant si on remplace notre unique $Q$ par un $Q_i$ diff\'erent \`a chaque tour, l'\'equation n'est plus vrai. Si l'on connait l'existence d'un $e$ tel que $P=e\times Q_i$, l'\'equation %
+	$P=e\times Q_{i+1}$ est fausse car $Q_i\neq Q_{i+1}$. \\
+	La connaissance d'une suite $e_1,\ldots , e_k, \ldots$ tel que $P=e_1\times Q_1, \ldots$ %
+	$ P=e_k\times Q_k \ldots$ permet toujours de casser l'algorithme. Cependant si le choix, des %
+	$Q_k$ est laiss\'e \`a l'utilisateur, une entit\'e ext\'erieur ne peut pas casser l'algorithme. 	
+	 \chapter{Conclusion}
+	 
+	La g\'en\'eration de nombre al\'eatoire est essentielle dans nombreuse application cryptographique %
+	par exemple dans l'\'echange de cl\'e de Diffie Hellman. La s\'ecurit\'e des protocoles reposent sur %
+	le fait que ces nombres sont vraiment al\'eatoire et ne puissent pas \^etre pr\'edits \`a l'avance. \\
+	
+	La backdoor du protocole a \'et\'e d\'evoil\'e en 2007 lors d'une conf\'erence. Dan Shumow et Niels Ferguson pensaient secouer le monde de la cryptographie avec ces r\'ev\'elations mais elles n'ont re\c{c}u qu'un accueil mitig\'e. Il a fallu attendre 6 ans que le New York Times et le Guardians r\'ev\`elent %
+	que la NSA avait effectivement acc\`es au secret de l'algorithme. La NSA n'a jamais avou\'e %
+	avoir eu connaissance de la backdoor, mais il est tr\`es difficile de croire une telle version %
+	\'etant donn\'e que les meilleurs cryptographe au monde travaillent pour eux. \\
+	Les journalistes ayant r\'ev\'el\'es l'affaire, supposent que la NSA s'en est servi pour %
+	r\'ecup\'erer des cl\'es \'echang\'ees via l'algorithme de Diffie Hellman mais cela n'a jamais pu %
+	\^etre prouver...
+	
+	\subsection{Remerciement}
+	Nous tenons \`a remercier Monsieur BRASCA pour ses suggestions et ses remarques ainsi que ses %
+	r\'eponses claires \`a nos questions.	
+	
+	\subsection{Sources}
+	\begin{itemize}
+	\item \url{https://jiggerwit.wordpress.com/2013/09/25/the-nsa-back-door-to-nist/}
+	\item \url{http://rump2007.cr.yp.to/15-shumow.pdf}
+	\item \url{http://csrc.nist.gov/publications/nistpubs/800-90A/SP800-90A.pdf}
+	\item \textit{\underline{Art Of Computer Programming Volume 2}} de Donald E. Knuth  
+	\end{itemize}	   	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 
+	 \end{document}	
